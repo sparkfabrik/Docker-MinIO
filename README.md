@@ -1,4 +1,4 @@
-# docker-minio
+# Docker MinIO
 
 This is a simple docker image for running a minio server. It is based on alpine linux and uses the minio and minio-client packages from the alpine package repository.
 

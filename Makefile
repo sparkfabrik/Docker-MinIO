@@ -9,7 +9,12 @@ build:
 	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
 cli: build
-	docker run --rm -it --entrypoint ash $(IMAGE_NAME):$(IMAGE_TAG)
+	docker run --rm -it \
+	-e BUCKET_NAME=$(BUCKET_NAME) \
+	-e MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
+	-e MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
+	--entrypoint ash \
+	$(IMAGE_NAME):$(IMAGE_TAG) -il
 
 start: build
 	@docker run \

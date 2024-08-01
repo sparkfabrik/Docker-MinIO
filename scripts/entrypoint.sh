@@ -21,9 +21,15 @@ if [ -z "${MINIO_ROOT_PASSWORD}" ] && [ -n "${MINIO_SECRET_KEY}" ]; then
   export MINIO_ROOT_PASSWORD="${MINIO_SECRET_KEY}"
 fi
 
+# Backward compatibility for OSB_BUCKET.
+# The variable is overwritten if BUCKET_NAME is not set.
+if [ -z "${BUCKET_NAME}" ] && [ -n "${OSB_BUCKET}" ]; then
+  export BUCKET_NAME="${OSB_BUCKET}"
+fi
+
 # Check required environment variables
-if [ -z "${OSB_BUCKET}" ]; then
-  minio_error "OSB_BUCKET environment variable is required."
+if [ -z "${BUCKET_NAME}" ]; then
+  minio_error "BUCKET_NAME environment variable is required."
 fi
 
 if [ -z "${MINIO_ROOT_USER}" ]; then

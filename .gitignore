@@ -1,0 +1,6 @@
+/initfiles/**
+!/initfiles/.gitkeep
+
+# IDE files
+.idea
+.vscode

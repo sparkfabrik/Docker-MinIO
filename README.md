@@ -12,6 +12,8 @@ The `/scripts/entrypoint.sh` script is used to start the minio server. It is pos
 | `BUCKET_ROOT`              | The folder used by the minio server to store the files.     | `/data`                          |
 | `INITFILES_FOLDER`         | The folder where the seed files are stored.                 | `/docker-entrypoint-initfiles.d` |
 | `DO_NOT_PROCESS_INITFILES` | If set to `1`, the seed files are not processed at startup. | `0`                              |
+| `MINIO_ROOT_USER`          | The access key used to authenticate with the minio server.  | `-`                              |
+| `MINIO_ROOT_PASSWORD`      | The secret key used to authenticate with the minio server.  | `-`                              |
 | `MINIO_BROWSER`            | If set to `on`, the minio browser is enabled.               | `off`                            |
 | `MINIO_CONSOLE_PORT`       | The port used by the minio console.                         | `9001`                           |
 | `MINIO_OPTS`               | Additional options to pass to the minio server.             | `-`                              |

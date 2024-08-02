@@ -13,20 +13,21 @@ export MINIO_BROWSER=${MINIO_BROWSER:-"off"}
 export MINIO_CONSOLE_PORT=${MINIO_CONSOLE_PORT:-"9001"}
 export MINIO_OPTS=${MINIO_OPTS:-""}
 
+# Backward compatibility for OSB_BUCKET.
+# If `BUCKET_NAME` variable is not set, then `OSB_BUCKET` variable is used to set `BUCKET_NAME`.
+if [ -z "${BUCKET_NAME}" ] && [ -n "${OSB_BUCKET}" ]; then
+  export BUCKET_NAME="${OSB_BUCKET}"
+fi
+
 # Backward compatibility for MINIO_ACCESS_KEY and MINIO_SECRET_KEY.
-# The variables are overwritten if MINIO_ROOT_USER and MINIO_ROOT_PASSWORD are not set.
+# If `MINIO_ROOT_USER` variable is not set, then `MINIO_ACCESS_KEY` variable is used to set `MINIO_ROOT_USER`.
+# If `MINIO_ROOT_PASSWORD` variable is not set, then `MINIO_SECRET_KEY` variable is used to set `MINIO_ROOT_PASSWORD`.
 if [ -z "${MINIO_ROOT_USER}" ] && [ -n "${MINIO_ACCESS_KEY}" ]; then
   export MINIO_ROOT_USER="${MINIO_ACCESS_KEY}"
 fi
 
 if [ -z "${MINIO_ROOT_PASSWORD}" ] && [ -n "${MINIO_SECRET_KEY}" ]; then
   export MINIO_ROOT_PASSWORD="${MINIO_SECRET_KEY}"
-fi
-
-# Backward compatibility for OSB_BUCKET.
-# The variable is overwritten if BUCKET_NAME is not set.
-if [ -z "${BUCKET_NAME}" ] && [ -n "${OSB_BUCKET}" ]; then
-  export BUCKET_NAME="${OSB_BUCKET}"
 fi
 
 # Check required environment variables

@@ -19,7 +19,7 @@ minio_wait_for_readiness() {
   CNT=0
   TRESHOLD=10
   while [ "${CNT}" -lt 10 ]; do
-    if [ -n "$(mc admin info 2>&1 || true)" ]; then
+    if mc config host add "${MC_HOST}" http://localhost:9000 "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" &>/dev/null && mc admin info "${MC_HOST}" &>/dev/null; then
       minio_note "Minio server is ready."
       return 0
     fi
@@ -30,6 +30,18 @@ minio_wait_for_readiness() {
   minio_error "Minio server is not ready in ${TRESHOLD} seconds."
 }
 
+docker_create_bucket() {
+  # Check if bucket exists, otherwise create it.
+  if mc ls "minio/${BUCKET_NAME}" &>/dev/null; then
+    minio_note "Bucket '${BUCKET_NAME}' already exists."
+  else
+    minio_note "Creating bucket '${BUCKET_NAME}'."
+    mc config host add minio http://localhost:9000 "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" | minio_note
+    mc mb -p "minio/${BUCKET_NAME}" | minio_note
+    mc anonymous set download "minio/${BUCKET_NAME}" | minio_note
+  fi
+}
+
 docker_process_init_files() {
   if [ "$(mc ls "minio/${BUCKET_NAME}/" | wc -l)" -ne 0 ]; then
     minio_note "Bucket '${BUCKET_NAME}' is not empty. Skipping initialization files."
@@ -37,7 +49,7 @@ docker_process_init_files() {
   fi
 
   minio_note "Bucket '${BUCKET_NAME}' is empty. Processing initialization files."
-  if [ "$(ls "${INITFILES_FOLDER}" | wc -l)" -gt 0 ]; then
+  if [ "$(ls "${INITFILES_FOLDER}" 2>/dev/null | wc -l)" -gt 0 ]; then
     minio_note "Uploading files to bucket '${BUCKET_NAME}'."
     # Note the trailing slash in the source folder. This is required to copy the CONTENTS of the folder and not the folder itself.
     mc cp --recursive "${INITFILES_FOLDER}/" "minio/${BUCKET_NAME}" 1>/dev/null 2>/tmp/minio_error.log
@@ -49,18 +61,6 @@ docker_process_init_files() {
   fi
 
   minio_note "No files found in '${INITFILES_FOLDER}'. The bucket '${BUCKET_NAME}' will remain empty."
-}
-
-docker_create_bucket() {
-  # Check if bucket exists, otherwise create it.
-  if [ -z "$(mc ls "minio/${BUCKET_NAME}" 2>&1 || true)" ]; then
-    minio_note "Bucket '${BUCKET_NAME}' already exists."
-  else
-    minio_note "Creating bucket '${BUCKET_NAME}'."
-    mc config host add minio http://localhost:9000 "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" | minio_note
-    mc mb -p "minio/${BUCKET_NAME}" | minio_note
-    mc anonymous set download "minio/${BUCKET_NAME}" | minio_note
-  fi
 }
 
 # Logging functions.

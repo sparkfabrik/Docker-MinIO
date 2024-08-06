@@ -12,6 +12,8 @@ export DO_NOT_PROCESS_INITFILES=${DO_NOT_PROCESS_INITFILES:-"0"}
 export MINIO_BROWSER=${MINIO_BROWSER:-"off"}
 export MINIO_CONSOLE_PORT=${MINIO_CONSOLE_PORT:-"9001"}
 export MINIO_OPTS=${MINIO_OPTS:-""}
+# Host to configure the local MinIO client.
+export MC_HOST="${MC_HOST:-"minio"}"
 
 # Backward compatibility for OSB_BUCKET.
 # If `BUCKET_NAME` variable is not set, then `OSB_BUCKET` variable is used to set `BUCKET_NAME`.

@@ -19,7 +19,7 @@ minio_wait_for_readiness() {
   CNT=0
   TRESHOLD=10
   while [ "${CNT}" -lt 10 ]; do
-    if mc config host add "${MC_HOST}" http://localhost:9000 "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" &>/dev/null && mc admin info "${MC_HOST}" &>/dev/null; then
+    if mc config host add "${MC_ALIAS}" "${MINIO_PROTO}://${MINIO_HOST}:${MINIO_PORT}" "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" &>/dev/null && mc admin info "${MC_ALIAS}" &>/dev/null; then
       minio_note "Minio server is ready."
       return 0
     fi
@@ -32,18 +32,20 @@ minio_wait_for_readiness() {
 
 docker_create_bucket() {
   # Check if bucket exists, otherwise create it.
-  if mc ls "minio/${BUCKET_NAME}" &>/dev/null; then
+  if mc ls "${MC_ALIAS}/${BUCKET_NAME}" &>/dev/null; then
     minio_note "Bucket '${BUCKET_NAME}' already exists."
   else
     minio_note "Creating bucket '${BUCKET_NAME}'."
-    mc config host add minio http://localhost:9000 "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" | minio_note
-    mc mb -p "minio/${BUCKET_NAME}" | minio_note
-    mc anonymous set download "minio/${BUCKET_NAME}" | minio_note
+    mc mb -p "${MC_ALIAS}/${BUCKET_NAME}" | minio_note
+    mc anonymous set download "${MC_ALIAS}/${BUCKET_NAME}" | minio_note
+  fi
+  if [ "${MINIO_VERSION_ENABLED}" = "1" ]; then
+    mc version enable "${MC_ALIAS}/${BUCKET_NAME}" | minio_note
   fi
 }
 
 docker_process_init_files() {
-  if [ "$(mc ls "minio/${BUCKET_NAME}/" | wc -l)" -ne 0 ]; then
+  if [ "$(mc ls "${MC_ALIAS}/${BUCKET_NAME}/" | wc -l)" -ne 0 ]; then
     minio_note "Bucket '${BUCKET_NAME}' is not empty. Skipping initialization files."
     return
   fi
@@ -52,7 +54,7 @@ docker_process_init_files() {
   if [ "$(ls "${INITFILES_FOLDER}" 2>/dev/null | wc -l)" -gt 0 ]; then
     minio_note "Uploading files to bucket '${BUCKET_NAME}'."
     # Note the trailing slash in the source folder. This is required to copy the CONTENTS of the folder and not the folder itself.
-    mc cp --recursive "${INITFILES_FOLDER}/" "minio/${BUCKET_NAME}" 1>/dev/null 2>/tmp/minio_error.log
+    mc cp --recursive "${INITFILES_FOLDER}/" "${MC_ALIAS}/${BUCKET_NAME}" 1>/dev/null 2>/tmp/minio_error.log
     if [ -s /tmp/minio_error.log ]; then
       minio_error "Error uploading files to bucket '${BUCKET_NAME}'."
       minio_error "$(cat /tmp/minio_error.log)"

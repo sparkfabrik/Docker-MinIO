@@ -9,12 +9,12 @@ build:
 	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
 cli: build
-	docker run --rm -it \
+	@docker run --rm -it \
 	-e BUCKET_NAME=$(BUCKET_NAME) \
 	-e MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
 	-e MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
-	--entrypoint ash \
-	$(IMAGE_NAME):$(IMAGE_TAG) -il
+	--network host \
+	$(IMAGE_NAME):$(IMAGE_TAG) mc ls minio/$(BUCKET_NAME)
 
 start: build
 	@docker run \
@@ -22,6 +22,7 @@ start: build
 	-e MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
 	-e MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
 	-e MINIO_BROWSER=on \
+	-e MINIO_VERSION_ENABLED=1 \
 	-p 9000:9000 \
 	-p 9001:9001 \
 	-v ./initfiles:/docker-entrypoint-initfiles.d \

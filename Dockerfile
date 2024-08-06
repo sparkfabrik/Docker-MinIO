@@ -10,3 +10,4 @@ RUN chmod +x /scripts/entrypoint.sh
 EXPOSE 9000 9001
 
 ENTRYPOINT ["/scripts/entrypoint.sh"]
+CMD ["minio"]

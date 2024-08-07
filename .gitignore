@@ -1,11 +1,10 @@
-/initarchives/**
 !/initarchives/.gitkeep
-/initfiles/**
 !/initfiles/.gitkeep
-/initfilesystem/**
 !/initfilesystem/.gitkeep
-
 /data
+/initarchives/**
+/initfiles/**
+/initfilesystem/**
 /tmp
 
 # IDE files

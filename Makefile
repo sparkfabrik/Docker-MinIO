@@ -8,16 +8,8 @@ MINIO_ROOT_PASSWORD ?= minioadmin
 build:
 	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
-cli: build
-	@docker run --rm -it \
-	-e BUCKET_NAME=$(BUCKET_NAME) \
-	-e MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
-	-e MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
-	--network host \
-	$(IMAGE_NAME):$(IMAGE_TAG) mc ls minio/$(BUCKET_NAME)
-
 start: build
-	@docker run \
+	@docker run --rm \
 	-e BUCKET_NAME=$(BUCKET_NAME) \
 	-e MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
 	-e MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
@@ -25,8 +17,19 @@ start: build
 	-e MINIO_VERSION_ENABLED=1 \
 	-p 9000:9000 \
 	-p 9001:9001 \
+	-v ./initfilesystem:/docker-entrypoint-initfs.d \
+	-v ./initarchives:/docker-entrypoint-initarchives.d \
 	-v ./initfiles:/docker-entrypoint-initfiles.d \
 	$(IMAGE_NAME):$(IMAGE_TAG)
+
+mc: build
+	@docker run --rm -it \
+	-e BUCKET_NAME=$(BUCKET_NAME) \
+	-e MINIO_ROOT_USER=$(MINIO_ROOT_USER) \
+	-e MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
+	--network host \
+	--entrypoint bash \
+	$(IMAGE_NAME):$(IMAGE_TAG) -ilc 'mc config host add minio http://localhost:9000 $(MINIO_ROOT_USER) $(MINIO_ROOT_PASSWORD) && bash -il'
 
 aws-cli:
 	@docker run --rm -it \
@@ -37,3 +40,6 @@ aws-cli:
 	--network host \
 	--entrypoint bash \
 	amazon/aws-cli -il
+
+minio-console:
+	xdg-open http://localhost:9001

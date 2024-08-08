@@ -166,7 +166,7 @@ minio_process_seed_archives_and_files() {
   fi
 
   if [ "${SOMETHING_UPLOADED}" = "0" ]; then
-    minio_log_note "No files found after processing archives in '${INITARCHIVES_DIR}' and files in '${INITFILES_DIR}'. The bucket '${BUCKET_NAME}' will remain empty."
+    minio_log_note "No files found after processing archives in '${INITARCHIVES_DIR}' and files in '${INITFILES_DIR}'. Nothing was added to the bucket."
   fi
 }
 

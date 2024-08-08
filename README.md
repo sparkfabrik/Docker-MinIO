@@ -74,25 +74,27 @@ The resulting bucket content will be:
 
 ## Environment Variables
 
-| Variable                   | Description                                                                                                          | Default                             |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `DEBUG`                    | If set to `1`, the script prints the debug information.                                                              | `0`                                 |
-| `BUCKET_NAME`              | The name of the bucket to create and populate at startup.                                                            | `-`                                 |
-| `BUCKET_ROOT`              | The folder used by the MinIO server to store the files.                                                              | `/data`                             |
-| `INITFILESYSTEM_DIR`       | The folder where the root init filesystem is stored. If not empty, the files are copied to the `BUCKET_ROOT` folder. | `/docker-entrypoint-initfs.d`       |
-| `INITARCHIVES_DIR`         | The folder where the seed archives are stored.                                                                       | `/docker-entrypoint-initarchives.d` |
-| `INITFILES_DIR`            | The folder where the seed files are stored.                                                                          | `/docker-entrypoint-initfiles.d`    |
-| `DO_NOT_PROCESS_INITFILES` | If set to `1`, the seed archives and files are not processed at startup.                                             | `0`                                 |
-| `MINIO_ROOT_USER`          | The access key used to authenticate with the MinIO server.                                                           | `-`                                 |
-| `MINIO_ROOT_PASSWORD`      | The secret key used to authenticate with the MinIO server.                                                           | `-`                                 |
-| `MINIO_VERSION_ENABLED`    | If set to `1`, the MinIO version is enabled.                                                                         | `0`                                 |
-| `MINIO_OPTS`               | Additional options to pass to the MinIO server.                                                                      | `-`                                 |
-| `MINIO_BROWSER`            | If set to `on`, the MinIO console is enabled.                                                                        | `off`                               |
-| `MINIO_CONSOLE_PORT`       | The port used by the MinIO console.                                                                                  | `9001`                              |
-| `MC_ALIAS`                 | The alias used by the MinIO client.                                                                                  | `minio`                             |
-| `MINIO_PROTO`              | The protocol used to connect to the MinIO server.                                                                    | `http`                              |
-| `MINIO_HOST`               | The host used to connect to the MinIO server.                                                                        | `localhost`                         |
-| `MINIO_PORT`               | The port used to connect to the MinIO server.                                                                        | `9000`                              |
+| Variable                   | Description                                                                                                                                                             | Default                             |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `DEBUG`                    | If set to `1`, the script prints the debug information.                                                                                                                 | `0`                                 |
+| `BUCKET_NAME`              | The name of the bucket to create and populate at startup.                                                                                                               | `-`                                 |
+| `BUCKET_ROOT`              | The folder used by the MinIO server to store the files.                                                                                                                 | `/data`                             |
+| `INITFILESYSTEM_DIR`       | The folder where the root init filesystem is stored. If not empty, the files are copied to the `BUCKET_ROOT` folder.                                                    | `/docker-entrypoint-initfs.d`       |
+| `INITARCHIVES_DIR`         | The folder where the seed archives are stored.                                                                                                                          | `/docker-entrypoint-initarchives.d` |
+| `INITFILES_DIR`            | The folder where the seed files are stored.                                                                                                                             | `/docker-entrypoint-initfiles.d`    |
+| `DO_NOT_PROCESS_INITFILES` | If set to `1`, the seed archives and files are not processed at startup.                                                                                                | `0`                                 |
+| `MINIO_ROOT_USER`          | The access key used to authenticate with the MinIO server.                                                                                                              | `-`                                 |
+| `OSB_ACCESS_KEY`           | Alternative way to configure the access key used to authenticate with the MinIO server. **If `MINIO_ROOT_USER` is not set, this variable is used to configure it.**     | `-`                                 |
+| `MINIO_ROOT_PASSWORD`      | The secret key used to authenticate with the MinIO server.                                                                                                              | `-`                                 |
+| `OSB_SECRET_KEY`           | Alternative way to configure the secret key used to authenticate with the MinIO server. **If `MINIO_ROOT_PASSWORD` is not set, this variable is used to configure it.** | `-`                                 |
+| `MINIO_VERSION_ENABLED`    | If set to `1`, the MinIO version is enabled.                                                                                                                            | `0`                                 |
+| `MINIO_OPTS`               | Additional options to pass to the MinIO server.                                                                                                                         | `-`                                 |
+| `MINIO_BROWSER`            | If set to `on`, the MinIO console is enabled.                                                                                                                           | `off`                               |
+| `MINIO_CONSOLE_PORT`       | The port used by the MinIO console.                                                                                                                                     | `9001`                              |
+| `MC_ALIAS`                 | The alias used by the MinIO client.                                                                                                                                     | `minio`                             |
+| `MINIO_PROTO`              | The protocol used to connect to the MinIO server.                                                                                                                       | `http`                              |
+| `MINIO_HOST`               | The host used to connect to the MinIO server.                                                                                                                           | `localhost`                         |
+| `MINIO_PORT`               | The port used to connect to the MinIO server.                                                                                                                           | `9000`                              |
 
 ### Deprecated Variables
 
@@ -103,3 +105,5 @@ The following variables are deprecated and will be removed. Use the new variable
 | `OSB_BUCKET`       | The name of the bucket to create and populate at startup. **Use `BUCKET_NAME` instead.**          |
 | `MINIO_ACCESS_KEY` | The access key used to authenticate with the MinIO server. **Use `MINIO_ROOT_USER` instead.**     |
 | `MINIO_SECRET_KEY` | The secret key used to authenticate with the MinIO server. **Use `MINIO_ROOT_PASSWORD` instead.** |
+
+`MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY` are used only if the new variables (`MINIO_ROOT_USER` or `OSB_ACCESS_KEY` and `MINIO_ROOT_PASSWORD` or `OSB_SECRET_KEY`) are not set.

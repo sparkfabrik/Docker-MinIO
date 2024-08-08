@@ -27,6 +27,17 @@ export MINIO_PROTO="${MINIO_PROTO:-"http"}"
 export MINIO_HOST="${MINIO_HOST:-"localhost"}"
 export MINIO_PORT="${MINIO_PORT:-"9000"}"
 
+# Alternative way to set the MinIO credentials.
+# if `OSB_ACCESS_KEY` variable is set, then `OSB_ACCESS_KEY` variable is used to set `MINIO_ROOT_USER`.
+# if `OSB_SECRET_KEY` variable is set, then `OSB_SECRET_KEY` variable is used to set `MINIO_ROOT_PASSWORD`.
+if [ -z "${MINIO_ROOT_USER}" ] && [ -n "${OSB_ACCESS_KEY}" ]; then
+  export MINIO_ROOT_USER="${OSB_ACCESS_KEY}"
+fi
+
+if [ -z "${MINIO_ROOT_PASSWORD}" ] && [ -n "${OSB_SECRET_KEY}" ]; then
+  export MINIO_ROOT_PASSWORD="${OSB_SECRET_KEY}"
+fi
+
 # Backward compatibility for OSB_BUCKET.
 # If `BUCKET_NAME` variable is not set, then `OSB_BUCKET` variable is used to set `BUCKET_NAME`.
 if [ -z "${BUCKET_NAME}" ] && [ -n "${OSB_BUCKET}" ]; then

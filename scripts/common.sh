@@ -82,10 +82,9 @@ minio_create_bucket() {
   else
     mc mb -p "${MC_ALIAS}/${BUCKET_NAME}" | minio_log_note
     minio_log_note "Bucket '${BUCKET_NAME}' created."
+    # Set the bucket policy.
+    mc anonymous set download "${MC_ALIAS}/${BUCKET_NAME}" | minio_log_note
   fi
-
-  # Set the bucket policy.
-  mc anonymous set download "${MC_ALIAS}/${BUCKET_NAME}" | minio_log_note
 
   # Enable versioning for the bucket if the MINIO_VERSION_ENABLED variable is set to 1.
   if [ "${MINIO_VERSION_ENABLED}" = "1" ]; then

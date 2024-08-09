@@ -78,6 +78,7 @@ The resulting bucket content will be:
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
 | `DEBUG`                    | If set to `1`, the script prints the debug information.                                                                                                                 | `0`                                 |
 | `BUCKET_NAME`              | The name of the bucket to create and populate at startup.                                                                                                               | `-`                                 |
+| `OSB_BUCKET`               | Alternative way to configure the name of the bucket to create and populate at startup. **If `BUCKET_NAME` is not set, this variable is used to configure it.**          | `-`                                 |
 | `BUCKET_ROOT`              | The folder used by the MinIO server to store the files.                                                                                                                 | `/data`                             |
 | `INITFILESYSTEM_DIR`       | The folder where the root init filesystem is stored. If not empty, the files are copied to the `BUCKET_ROOT` folder.                                                    | `/docker-entrypoint-initfs.d`       |
 | `INITARCHIVES_DIR`         | The folder where the seed archives are stored.                                                                                                                          | `/docker-entrypoint-initarchives.d` |
@@ -102,7 +103,6 @@ The following variables are deprecated and will be removed. Use the new variable
 
 | Variable           | Description                                                                                       |
 | ------------------ | ------------------------------------------------------------------------------------------------- |
-| `OSB_BUCKET`       | The name of the bucket to create and populate at startup. **Use `BUCKET_NAME` instead.**          |
 | `MINIO_ACCESS_KEY` | The access key used to authenticate with the MinIO server. **Use `MINIO_ROOT_USER` instead.**     |
 | `MINIO_SECRET_KEY` | The secret key used to authenticate with the MinIO server. **Use `MINIO_ROOT_PASSWORD` instead.** |
 

@@ -38,7 +38,7 @@ if [ -z "${MINIO_ROOT_PASSWORD}" ] && [ -n "${OSB_SECRET_KEY}" ]; then
   export MINIO_ROOT_PASSWORD="${OSB_SECRET_KEY}"
 fi
 
-# Backward compatibility for OSB_BUCKET.
+# Alternative way to set the name of the bucket.
 # If `BUCKET_NAME` variable is not set, then `OSB_BUCKET` variable is used to set `BUCKET_NAME`.
 if [ -z "${BUCKET_NAME}" ] && [ -n "${OSB_BUCKET}" ]; then
   export BUCKET_NAME="${OSB_BUCKET}"

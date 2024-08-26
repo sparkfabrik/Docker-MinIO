@@ -114,7 +114,7 @@ if [ "${1}" = "minio" ]; then
   minio_stop_temp_server
 
   # Run minio.
-  exec /usr/bin/minio server "${BUCKET_ROOT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
+  exec /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
 fi
 
 if [ "${1}" = "mc" ]; then

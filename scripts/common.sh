@@ -6,7 +6,7 @@ minio_start_temp_server() {
   fi
 
   # Start minio server. We need to start it to create the bucket and eventually upload files.
-  exec /usr/bin/minio server "${BUCKET_ROOT}" &>/dev/null &
+  exec /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" &>/dev/null &
   MINIO_TEMP_PID=$!
   sleep 1
 }

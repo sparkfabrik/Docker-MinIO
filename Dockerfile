@@ -8,6 +8,9 @@ RUN apk add --no-cache minio minio-client \
 COPY scripts /scripts
 RUN chmod +x /scripts/entrypoint.sh
 
+ENV HOME=/userhome
+RUN mkdir /userhome && chmod 777 /userhome
+
 EXPOSE 9000 9001
 
 ENTRYPOINT ["/scripts/entrypoint.sh"]

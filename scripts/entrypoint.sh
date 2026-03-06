@@ -113,8 +113,17 @@ if [ "${1}" = "minio" ]; then
   # Stop temporary MinIO server.
   minio_stop_temp_server
 
+  if [ -n "${MY_UID}" ]; then
+    usermod -u "${MY_UID}" minio
+    chown -R "${MY_UID}" "${BUCKET_ROOT}"
+  fi
+  if [ -n "${MY_GID}" ]; then
+    groupmod -g "${MY_GID}" minio
+    chgrp -R "${MY_GID}" "${BUCKET_ROOT}"
+  fi
+
   # Run minio.
-  exec /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
+  gosu "${MY_UID:-root}:${MY_GID:-root}" /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
 fi
 
 if [ "${1}" = "mc" ]; then

@@ -113,15 +113,15 @@ if [ "${1}" = "minio" ]; then
   # Stop temporary MinIO server.
   minio_stop_temp_server
 
-  if [ -n "${MY_UID:-0}" ] && [ "${MY_UID:-0}" != "0" ]; then
-    usermod -u "${MY_UID:-0}" minio
-  fi
-  if [ -n "${MY_GID:-0}" ] && [ "${MY_GID:-0}" != "0" ]; then
-    groupmod -g "${MY_GID:-0}" minio
-  fi
+  # No need to execute the following, minio runs ok with a (potentially) userless approach.
+  #   usermod -u "${MY_UID:-0}" minio
+  #   groupmod -g "${MY_GID:-0}" minio
 
   chown -R "${MY_UID:-0}" "${BUCKET_ROOT}"
   chgrp -R "${MY_GID:-0}" "${BUCKET_ROOT}"
+
+  minio_log Debug "MY_UID=${MY_UID:-not set}"
+  minio_log Debug "MY_GID=${MY_GID:-not set}"
 
   # Run minio.
   gosu "${MY_UID:-0}:${MY_GID:-0}" /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}

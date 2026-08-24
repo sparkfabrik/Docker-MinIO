@@ -129,14 +129,17 @@ if [ "${1}" = "minio" ]; then
   # owner or the process holds CAP_FOWNER, so dropping privileges after an
   # ineffective chown makes backend init fail with EPERM. Probe whether chown
   # is effective on BUCKET_ROOT before relying on it.
+  # Any probe failure counts as "chown not effective": the setpriv path works
+  # regardless of ownership, while the gosu path only works when it sticks.
   CHOWN_IS_EFFECTIVE=1
-  if [ "${MY_UID}" -ne 0 ]; then
+  if [ "${MY_UID}" != "0" ]; then
     PROBE_FILE="$(mktemp "${BUCKET_ROOT}/.chown-probe.XXXXXX")"
-    chown "${MY_UID}" "${PROBE_FILE}"
-    if [ "$(stat -c '%u' "${PROBE_FILE}")" -ne "${MY_UID}" ]; then
+    chown "${MY_UID}:${MY_GID}" "${PROBE_FILE}" || true
+    PROBE_OWNER="$(stat -c '%u:%g' "${PROBE_FILE}" || echo "")"
+    rm -f "${PROBE_FILE}"
+    if [ "${PROBE_OWNER}" != "${MY_UID}:${MY_GID}" ]; then
       CHOWN_IS_EFFECTIVE=0
     fi
-    rm -f "${PROBE_FILE}"
   fi
 
   # Run minio.

@@ -72,6 +72,15 @@ The resulting bucket content will be:
 - `file5.txt`:
   - single version, is the content of the `INITFILES_DIR` file.
 
+## Running as a non-root user
+
+If `MY_UID` and `MY_GID` are set, the MinIO server process is started as that uid and gid after the initialization phase. Before dropping privileges, the entrypoint probes whether `chown` is effective on `BUCKET_ROOT`:
+
+- **`chown` is effective** (Linux bind mounts, named volumes, CI): the entrypoint recursively chowns `BUCKET_ROOT` to `MY_UID:MY_GID` and starts MinIO with `gosu`, as before.
+- **`chown` is not persisted** (Docker Desktop 4.80 or later on macOS with VirtioFS file sharing, where `chown` succeeds but `stat` keeps reporting the host owner): the recursive chown is skipped, since it would be a no-op that only slows down startup, and MinIO is started with `setpriv` as `MY_UID:MY_GID` plus the `CAP_FOWNER` capability. MinIO opens its backend files with `O_NOATIME`, which the kernel grants only to the file owner or to a process holding `CAP_FOWNER`, so without this the backend initialization would fail with `EPERM` on any pre-existing `BUCKET_ROOT`.
+
+Host-side file ownership on macOS is not affected: virtiofsd performs all host filesystem operations as the host user regardless of the container uid.
+
 ## Environment Variables
 
 | Variable                   | Description                                                                                                                                                             | Default                             |
@@ -96,6 +105,8 @@ The resulting bucket content will be:
 | `MINIO_PROTO`              | The protocol used to connect to the MinIO server.                                                                                                                       | `http`                              |
 | `MINIO_HOST`               | The host used to connect to the MinIO server.                                                                                                                           | `localhost`                         |
 | `MINIO_PORT`               | The port used to connect to the MinIO server.                                                                                                                           | `9000`                              |
+| `MY_UID`                   | The uid used to run the MinIO server process. See [Running as a non-root user](#running-as-a-non-root-user).                                                            | `0`                                 |
+| `MY_GID`                   | The gid used to run the MinIO server process. See [Running as a non-root user](#running-as-a-non-root-user).                                                            | `0`                                 |
 
 ### Deprecated Variables
 

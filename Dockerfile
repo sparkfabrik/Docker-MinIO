@@ -1,7 +1,7 @@
 FROM alpine:3.20
 
 RUN apk add --no-cache minio minio-client ca-certificates \
-  bash curl date file rsync tar unzip xz shadow \
+  bash curl date file rsync tar unzip xz shadow util-linux-misc \
   && ln -fs /usr/bin/mcli /usr/bin/mc
 
 # https://github.com/tianon/gosu/blob/3d395d499a92ffa47d70c79d24a738b85075f477/INSTALL.md

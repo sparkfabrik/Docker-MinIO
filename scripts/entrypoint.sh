@@ -117,14 +117,46 @@ if [ "${1}" = "minio" ]; then
   #   usermod -u "${MY_UID:-0}" minio
   #   groupmod -g "${MY_GID:-0}" minio
 
-  chown -R "${MY_UID:-0}" "${BUCKET_ROOT}"
-  chgrp -R "${MY_GID:-0}" "${BUCKET_ROOT}"
+  MY_UID="${MY_UID:-0}"
+  MY_GID="${MY_GID:-0}"
 
-  minio_log Debug "MY_UID=${MY_UID:-not set}"
-  minio_log Debug "MY_GID=${MY_GID:-not set}"
+  minio_log_debug "MY_UID=${MY_UID}"
+  minio_log_debug "MY_GID=${MY_GID}"
+
+  # Docker Desktop >= 4.80 with VirtioFS accepts chown but does not persist it:
+  # stat keeps reporting the host owner. MinIO opens backend files with
+  # O_NOATIME, which the kernel grants only when the euid matches the file
+  # owner or the process holds CAP_FOWNER, so dropping privileges after an
+  # ineffective chown makes backend init fail with EPERM. Probe whether chown
+  # is effective on BUCKET_ROOT before relying on it.
+  # Any probe failure counts as "chown not effective": the setpriv path works
+  # regardless of ownership, while the gosu path only works when it sticks.
+  CHOWN_IS_EFFECTIVE=1
+  if [ "${MY_UID}" != "0" ]; then
+    if PROBE_FILE="$(mktemp "${BUCKET_ROOT}/.chown-probe.XXXXXX")"; then
+      chown "${MY_UID}:${MY_GID}" "${PROBE_FILE}" || true
+      PROBE_OWNER="$(stat -c '%u:%g' "${PROBE_FILE}" || echo "")"
+      rm -f "${PROBE_FILE}"
+      if [ "${PROBE_OWNER}" != "${MY_UID}:${MY_GID}" ]; then
+        CHOWN_IS_EFFECTIVE=0
+      fi
+    else
+      CHOWN_IS_EFFECTIVE=0
+    fi
+  fi
 
   # Run minio.
-  gosu "${MY_UID:-0}:${MY_GID:-0}" /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
+  if [ "${CHOWN_IS_EFFECTIVE}" -eq 1 ]; then
+    chown -R "${MY_UID}" "${BUCKET_ROOT}"
+    chgrp -R "${MY_GID}" "${BUCKET_ROOT}"
+
+    gosu "${MY_UID}:${MY_GID}" /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
+  else
+    minio_log_warn "chown on '${BUCKET_ROOT}' is not persisted by the filesystem (Docker Desktop >= 4.80 with VirtioFS). Skipping the recursive chown and starting MinIO as ${MY_UID}:${MY_GID} with CAP_FOWNER."
+    setpriv --reuid "${MY_UID}" --regid "${MY_GID}" --clear-groups \
+      --inh-caps +fowner --ambient-caps +fowner \
+      /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
+  fi
 fi
 
 if [ "${1}" = "mc" ]; then

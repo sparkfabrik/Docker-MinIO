@@ -133,11 +133,14 @@ if [ "${1}" = "minio" ]; then
   # regardless of ownership, while the gosu path only works when it sticks.
   CHOWN_IS_EFFECTIVE=1
   if [ "${MY_UID}" != "0" ]; then
-    PROBE_FILE="$(mktemp "${BUCKET_ROOT}/.chown-probe.XXXXXX")"
-    chown "${MY_UID}:${MY_GID}" "${PROBE_FILE}" || true
-    PROBE_OWNER="$(stat -c '%u:%g' "${PROBE_FILE}" || echo "")"
-    rm -f "${PROBE_FILE}"
-    if [ "${PROBE_OWNER}" != "${MY_UID}:${MY_GID}" ]; then
+    if PROBE_FILE="$(mktemp "${BUCKET_ROOT}/.chown-probe.XXXXXX")"; then
+      chown "${MY_UID}:${MY_GID}" "${PROBE_FILE}" || true
+      PROBE_OWNER="$(stat -c '%u:%g' "${PROBE_FILE}" || echo "")"
+      rm -f "${PROBE_FILE}"
+      if [ "${PROBE_OWNER}" != "${MY_UID}:${MY_GID}" ]; then
+        CHOWN_IS_EFFECTIVE=0
+      fi
+    else
       CHOWN_IS_EFFECTIVE=0
     fi
   fi

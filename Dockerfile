@@ -39,5 +39,5 @@ EXPOSE 9000 9001
 ENTRYPOINT ["/scripts/entrypoint.sh"]
 CMD ["minio"]
 
-HEALTHCHECK --start-period=1m --interval=5m --timeout=5s \
+HEALTHCHECK --start-period=30s --start-interval=5s --interval=30s --timeout=5s --retries=7 \
   CMD curl -f http://localhost:${MINIO_PORT:-9000}/minio/health/live || exit 1

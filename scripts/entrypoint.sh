@@ -33,6 +33,13 @@ export MINIO_PROTO="${MINIO_PROTO:-"http"}"
 export MINIO_HOST="${MINIO_HOST:-"localhost"}"
 export MINIO_PORT="${MINIO_PORT:-"9000"}"
 
+# The health check probes MINIO_PORT, so neither port of the temporary server
+# may be MINIO_PORT: a collision reports the container healthy while the bucket
+# is still being seeded. Refuse to start rather than run with a misleading probe.
+if [ "${MINIO_TEMP_PORT}" = "${MINIO_PORT}" ] || [ "${MINIO_TEMP_CONSOLE_PORT}" = "${MINIO_PORT}" ]; then
+  minio_log_error "MINIO_TEMP_PORT (${MINIO_TEMP_PORT}) and MINIO_TEMP_CONSOLE_PORT (${MINIO_TEMP_CONSOLE_PORT}) must differ from MINIO_PORT (${MINIO_PORT}): the health check probes MINIO_PORT and would report the container healthy before the initialization is finished."
+fi
+
 # Alternative way to set the MinIO credentials.
 # if `OSB_ACCESS_KEY` variable is set, then `OSB_ACCESS_KEY` variable is used to set `MINIO_ROOT_USER`.
 # if `OSB_SECRET_KEY` variable is set, then `OSB_SECRET_KEY` variable is used to set `MINIO_ROOT_PASSWORD`.

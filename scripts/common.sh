@@ -49,7 +49,7 @@ minio_wait_for_readiness() {
   HOST="${1:-${MINIO_HOST}}"
   PORT="${2:-${MINIO_PORT}}"
   while [ "${CNT}" -lt 10 ]; do
-    if mc config host add "${MC_ALIAS}" "${MINIO_PROTO}://${HOST}:${PORT}" "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" &>/dev/null && mc admin info "${MC_ALIAS}" &>/dev/null; then
+    if mc alias set "${MC_ALIAS}" "${MINIO_PROTO}://${HOST}:${PORT}" "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" &>/dev/null && mc admin info "${MC_ALIAS}" &>/dev/null; then
       minio_log_debug "Minio server is ready."
       return 0
     fi

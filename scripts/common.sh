@@ -6,7 +6,12 @@ minio_start_temp_server() {
   fi
 
   # Start minio server. We need to start it to create the bucket and eventually upload files.
-  exec /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" &>/dev/null &
+  # It listens on the loopback and on its own port, never on MINIO_PORT: the
+  # health check probes MINIO_PORT, so a temporary server answering there would
+  # report the container healthy while the bucket is still being seeded, and
+  # other containers on the network could reach a half-seeded bucket.
+  # The console address is explicit because minio picks a random port otherwise.
+  exec /usr/bin/minio server "${BUCKET_ROOT}" --address "${MINIO_TEMP_HOST}:${MINIO_TEMP_PORT}" --console-address "${MINIO_TEMP_HOST}:${MINIO_TEMP_CONSOLE_PORT}" &>/dev/null &
   MINIO_TEMP_PID=$!
   sleep 1
 }
@@ -21,6 +26,10 @@ minio_stop_temp_server() {
   minio_log_debug "Stopping temporary Minio server (PID: ${MINIO_TEMP_PID})."
   kill -9 "${MINIO_TEMP_PID}"
   MINIO_TEMP_PID=""
+  # The alias points at the temporary server, which is now gone. Drop it so no
+  # stale endpoint is left in the client configuration; the `mc` entrypoint
+  # registers the alias against the real server when it needs it.
+  mc alias remove "${MC_ALIAS}" &>/dev/null || true
   minio_log_debug "Temporary Minio server has been stopped."
 }
 
@@ -30,12 +39,17 @@ minio_restart_temp_server() {
   minio_log_debug "Temporary Minio server has been restarted."
 }
 
+# Waits for a MinIO server and points MC_ALIAS at it. Takes the host and the
+# port to target, defaulting to the final server, so the initialization phase
+# can wait on the temporary server instead.
 minio_wait_for_readiness() {
-  local CNT TRESHOLD
+  local CNT TRESHOLD HOST PORT
   CNT=0
   TRESHOLD=10
+  HOST="${1:-${MINIO_HOST}}"
+  PORT="${2:-${MINIO_PORT}}"
   while [ "${CNT}" -lt 10 ]; do
-    if mc config host add "${MC_ALIAS}" "${MINIO_PROTO}://${MINIO_HOST}:${MINIO_PORT}" "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" &>/dev/null && mc admin info "${MC_ALIAS}" &>/dev/null; then
+    if mc config host add "${MC_ALIAS}" "${MINIO_PROTO}://${HOST}:${PORT}" "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" &>/dev/null && mc admin info "${MC_ALIAS}" &>/dev/null; then
       minio_log_debug "Minio server is ready."
       return 0
     fi

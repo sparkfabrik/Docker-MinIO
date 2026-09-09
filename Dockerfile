@@ -39,5 +39,11 @@ EXPOSE 9000 9001
 ENTRYPOINT ["/scripts/entrypoint.sh"]
 CMD ["minio"]
 
-HEALTHCHECK --start-period=30s --start-interval=5s --interval=30s --timeout=5s --retries=7 \
+# The initialization phase keeps MINIO_PORT closed, so every probe fails until
+# the final server is serving. The start period covers the worst case we know
+# of (seeding a large bucket, then chown -R over its files) and start-interval
+# probes every 5s inside it, so a fast start still reports healthy in seconds.
+# Past the start period the 7 retries at 30s add 3m30s before the container is
+# declared unhealthy.
+HEALTHCHECK --start-period=5m --start-interval=5s --interval=30s --timeout=5s --retries=7 \
   CMD curl -f http://localhost:${MINIO_PORT:-9000}/minio/health/live || exit 1

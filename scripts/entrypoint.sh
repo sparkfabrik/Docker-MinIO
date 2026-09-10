@@ -21,11 +21,24 @@ export MINIO_OPTS=${MINIO_OPTS:-""}
 export MINIO_BROWSER=${MINIO_BROWSER:-"off"}
 export MINIO_CONSOLE_PORT=${MINIO_CONSOLE_PORT:-"9001"}
 
+# Configure the temporary MinIO server used during initialization. It stays off
+# MINIO_PORT so that port only answers once the final server is serving.
+export MINIO_TEMP_HOST="${MINIO_TEMP_HOST:-"127.0.0.1"}"
+export MINIO_TEMP_PORT="${MINIO_TEMP_PORT:-"19000"}"
+export MINIO_TEMP_CONSOLE_PORT="${MINIO_TEMP_CONSOLE_PORT:-"19001"}"
+
 # Configure the local MinIO client.
 export MC_ALIAS="${MC_ALIAS:-"minio"}"
 export MINIO_PROTO="${MINIO_PROTO:-"http"}"
 export MINIO_HOST="${MINIO_HOST:-"localhost"}"
 export MINIO_PORT="${MINIO_PORT:-"9000"}"
+
+# The health check probes MINIO_PORT, so neither port of the temporary server
+# may be MINIO_PORT: a collision reports the container healthy while the bucket
+# is still being seeded. Refuse to start rather than run with a misleading probe.
+if [ "${MINIO_TEMP_PORT}" = "${MINIO_PORT}" ] || [ "${MINIO_TEMP_CONSOLE_PORT}" = "${MINIO_PORT}" ]; then
+  minio_log_error "MINIO_TEMP_PORT (${MINIO_TEMP_PORT}) and MINIO_TEMP_CONSOLE_PORT (${MINIO_TEMP_CONSOLE_PORT}) must differ from MINIO_PORT (${MINIO_PORT}): the health check probes MINIO_PORT and would report the container healthy before the initialization is finished."
+fi
 
 # Alternative way to set the MinIO credentials.
 # if `OSB_ACCESS_KEY` variable is set, then `OSB_ACCESS_KEY` variable is used to set `MINIO_ROOT_USER`.
@@ -72,7 +85,7 @@ if [ "${1}" = "minio" ]; then
   # Start temporary MinIO server.
   minio_start_temp_server
   # Wait for MinIO server to be ready.
-  minio_wait_for_readiness
+  minio_wait_for_readiness "${MINIO_TEMP_HOST}" "${MINIO_TEMP_PORT}"
 
   if ! minio_initialization_is_needed; then
     minio_log_note "Bucket '${BUCKET_NAME}' exists and it is not empty. Skipping initialization."
@@ -92,7 +105,7 @@ if [ "${1}" = "minio" ]; then
       # Restart of MinIO server.
       minio_restart_temp_server
       # Wait for MinIO server to be ready.
-      minio_wait_for_readiness
+      minio_wait_for_readiness "${MINIO_TEMP_HOST}" "${MINIO_TEMP_PORT}"
       # Check if the init filesystem is consistent with the BUCKET_NAME variable.
       minio_check_initialized_filesystem
     fi
@@ -102,7 +115,7 @@ if [ "${1}" = "minio" ]; then
     # Restart of MinIO server.
     minio_restart_temp_server
     # Wait for MinIO server to be ready.
-    minio_wait_for_readiness
+    minio_wait_for_readiness "${MINIO_TEMP_HOST}" "${MINIO_TEMP_PORT}"
     # Create bucket and upload files.
     minio_create_bucket
     # Eventually process init files.

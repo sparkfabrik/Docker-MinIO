@@ -29,7 +29,7 @@ mc: build
 	-e MINIO_ROOT_PASSWORD=$(MINIO_ROOT_PASSWORD) \
 	--network host \
 	--entrypoint bash \
-	$(IMAGE_NAME):$(IMAGE_TAG) -ilc 'mc config host add minio http://localhost:9000 $(MINIO_ROOT_USER) $(MINIO_ROOT_PASSWORD) && bash -il'
+	$(IMAGE_NAME):$(IMAGE_TAG) -ilc 'mc alias set minio http://localhost:9000 $(MINIO_ROOT_USER) $(MINIO_ROOT_PASSWORD) && bash -il'
 
 aws-cli:
 	@docker run --rm -it \

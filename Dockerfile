@@ -3,7 +3,7 @@
 # so only its statically linked silo and mcli binaries are copied into Alpine.
 FROM docker.io/pgsty/silo:RELEASE.2026-11-12T00-00-00Z@sha256:c20d112390b9a9ce8c11b8af95ad35bcaa62f4759663c09c936cd8d2b511f329 AS silo
 
-FROM alpine:3.24
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
 
 COPY --from=silo /usr/bin/silo /usr/bin/mcli /usr/bin/
 

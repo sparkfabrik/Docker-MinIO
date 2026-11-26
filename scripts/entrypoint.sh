@@ -81,7 +81,8 @@ if [ -z "${MINIO_ROOT_PASSWORD}" ]; then
   minio_log_error "MINIO_ROOT_PASSWORD environment variable is required."
 fi
 
-if [ "${1}" = "minio" ]; then
+# "minio" is still accepted so existing command overrides keep working.
+if [ "${1}" = "silo" ] || [ "${1}" = "minio" ]; then
   # Start temporary MinIO server.
   minio_start_temp_server
   # Wait for MinIO server to be ready.
@@ -163,12 +164,12 @@ if [ "${1}" = "minio" ]; then
     chown -R "${MY_UID}" "${BUCKET_ROOT}"
     chgrp -R "${MY_GID}" "${BUCKET_ROOT}"
 
-    gosu "${MY_UID}:${MY_GID}" /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
+    gosu "${MY_UID}:${MY_GID}" /usr/bin/silo server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
   else
     minio_log_warn "chown on '${BUCKET_ROOT}' is not persisted by the filesystem (Docker Desktop >= 4.80 with VirtioFS). Skipping the recursive chown and starting MinIO as ${MY_UID}:${MY_GID} with CAP_FOWNER."
     setpriv --reuid "${MY_UID}" --regid "${MY_GID}" --clear-groups \
       --inh-caps +fowner --ambient-caps +fowner \
-      /usr/bin/minio server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
+      /usr/bin/silo server "${BUCKET_ROOT}" --address ":${MINIO_PORT}" --console-address ":${MINIO_CONSOLE_PORT}" ${MINIO_OPTS}
   fi
 fi
 

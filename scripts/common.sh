@@ -11,7 +11,7 @@ minio_start_temp_server() {
   # report the container healthy while the bucket is still being seeded, and
   # other containers on the network could reach a half-seeded bucket.
   # The console address is explicit because minio picks a random port otherwise.
-  exec /usr/bin/minio server "${BUCKET_ROOT}" --address "${MINIO_TEMP_HOST}:${MINIO_TEMP_PORT}" --console-address "${MINIO_TEMP_HOST}:${MINIO_TEMP_CONSOLE_PORT}" &>/dev/null &
+  exec /usr/bin/silo server "${BUCKET_ROOT}" --address "${MINIO_TEMP_HOST}:${MINIO_TEMP_PORT}" --console-address "${MINIO_TEMP_HOST}:${MINIO_TEMP_CONSOLE_PORT}" &>/dev/null &
   MINIO_TEMP_PID=$!
   sleep 1
 }
